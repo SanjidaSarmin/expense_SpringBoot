@@ -1,18 +1,23 @@
 package com.example.demo.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-public class Users {
+public class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
-    private String email;
+
+    @ManyToOne
+    @JoinColumn(name = "group_id")
+    @JsonBackReference
+    private Groups group;
 
     public Long getId() {
         return id;
@@ -30,11 +35,11 @@ public class Users {
         this.name = name;
     }
 
-    public String getEmail() {
-        return email;
+    public Groups getGroup() {
+        return group;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setGroup(Groups group) {
+        this.group = group;
     }
 }

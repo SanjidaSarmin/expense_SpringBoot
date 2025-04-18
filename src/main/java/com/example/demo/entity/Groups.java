@@ -1,7 +1,9 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -11,17 +13,12 @@ public class Groups {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    private String name; // List name
+    private String currency; // Currency (e.g., USD, INR)
 
-    // A group has many users
-    @ManyToMany
-    @JoinTable(
-            name = "user_groups_members",
-            joinColumns = @JoinColumn(name = "groups_id"),
-            inverseJoinColumns = @JoinColumn(name = "members_id")
-    )
-    private List<Users> members;
-
+    @OneToMany(mappedBy = "group")
+    @JsonManagedReference
+    private List<Member> members;
 
     public Long getId() {
         return id;
@@ -39,11 +36,19 @@ public class Groups {
         this.name = name;
     }
 
-    public List<Users> getMembers() {
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
+    public List<Member> getMembers() {
         return members;
     }
 
-    public void setMembers(List<Users> members) {
+    public void setMembers(List<Member> members) {
         this.members = members;
     }
 }

@@ -3,7 +3,7 @@ package com.example.demo.service;
 import com.example.demo.entity.Expense;
 import com.example.demo.entity.Groups;
 import com.example.demo.entity.Transaction;
-import com.example.demo.entity.Users;
+import com.example.demo.entity.Member;
 import com.example.demo.repository.ExpenseRepository;
 import com.example.demo.repository.GroupRepository;
 import com.example.demo.repository.TransactionRepository;
@@ -66,7 +66,7 @@ public class ExpenseService {
         Groups group = groupRepository.findById(expense.getGroup().getId())
                 .orElseThrow(() -> new RuntimeException("Group not found"));
 
-        List<Users> members = group.getMembers();
+        List<Member> members = group.getMembers();
         System.out.println("Members count: " + members.size());
 
         System.out.println("Paid By: " + (expense.getPaidBy() != null ? expense.getPaidBy().getName() : "null"));
@@ -78,7 +78,7 @@ public class ExpenseService {
 
         Map<String, Double> debts = new HashMap<>();
 
-        for (Users user : members) {
+        for (Member user : members) {
             System.out.println("Checking user: " + user.getName());
 
             if (expense.getPaidBy() == null || user.getId().equals(expense.getPaidBy().getId())) {
@@ -100,14 +100,14 @@ public class ExpenseService {
                 .orElseThrow(() -> new RuntimeException("Expense not found"));
 
         Groups group = expense.getGroup();
-        List<Users> members = group.getMembers();
+        List<Member> members = group.getMembers();
 
         double amount = expense.getAmount();
         double splitAmount = amount / members.size();
 
         Map<String, Double> debts = new HashMap<>();
 
-        for (Users user : members) {
+        for (Member user : members) {
             if (!user.getId().equals(expense.getPaidBy().getId())) {
                 // Save transaction
                 Transaction transaction = new Transaction();

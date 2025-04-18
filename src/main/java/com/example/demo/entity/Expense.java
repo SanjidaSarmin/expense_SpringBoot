@@ -15,7 +15,7 @@ public class Expense {
     private Double amount;
 
     @ManyToOne
-    private Users paidBy;
+    private Member paidBy;
 
     @ManyToOne
     @JoinColumn(name = "group_id", referencedColumnName = "id")
@@ -49,11 +49,11 @@ public class Expense {
         this.amount = amount;
     }
 
-    public Users getPaidBy() {
+    public Member getPaidBy() {
         return paidBy;
     }
 
-    public void setPaidBy(Users paidBy) {
+    public void setPaidBy(Member paidBy) {
         this.paidBy = paidBy;
     }
 

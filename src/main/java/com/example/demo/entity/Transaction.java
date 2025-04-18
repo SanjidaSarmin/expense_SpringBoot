@@ -12,10 +12,10 @@ public class Transaction {
     private Long id;
 
     @ManyToOne
-    private Users fromUser; // who owes
+    private Member fromUser; // who owes
 
     @ManyToOne
-    private Users toUser;   // who is owed
+    private Member toUser;   // who is owed
 
     private double amount;
 
@@ -30,19 +30,19 @@ public class Transaction {
         this.id = id;
     }
 
-    public Users getFromUser() {
+    public Member getFromUser() {
         return fromUser;
     }
 
-    public void setFromUser(Users fromUser) {
+    public void setFromUser(Member fromUser) {
         this.fromUser = fromUser;
     }
 
-    public Users getToUser() {
+    public Member getToUser() {
         return toUser;
     }
 
-    public void setToUser(Users toUser) {
+    public void setToUser(Member toUser) {
         this.toUser = toUser;
     }
 
