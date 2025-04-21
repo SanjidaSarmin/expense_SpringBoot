@@ -31,6 +31,7 @@ public class GroupController {
         return new ResponseEntity<>(groups, HttpStatus.OK);
     }
 
+
     // Add members to a group
     @PostMapping("/{groupId}/members")
     public ResponseEntity<Member> addMemberToGroup(@PathVariable Long groupId, @RequestBody Member member) {

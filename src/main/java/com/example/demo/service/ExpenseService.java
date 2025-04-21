@@ -1,18 +1,17 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.Expense;
-import com.example.demo.entity.Groups;
-import com.example.demo.entity.Transaction;
-import com.example.demo.entity.Member;
-import com.example.demo.repository.ExpenseRepository;
-import com.example.demo.repository.GroupRepository;
-import com.example.demo.repository.TransactionRepository;
+import com.example.demo.dto.ExpenseSplitRequest;
+import com.example.demo.entity.*;
+import com.example.demo.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ExpenseService {
@@ -20,110 +19,49 @@ public class ExpenseService {
     private ExpenseRepository expenseRepository;
 
     @Autowired
-    private TransactionRepository transactionRepository;
+    private ExpenseShareRepository expenseShareRepository;
 
     @Autowired
     private GroupRepository groupRepository;
 
-    // Get all expenses
-    public List<Expense> getAllExpenses() {
-        return expenseRepository.findAll();
-    }
+    @Autowired
+    private MemberRepository memberRepository;
 
-    // Get expense by ID
-    public Expense getExpenseById(Long id) {
-        return expenseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Expense not found with id: " + id));
-    }
-
-    // Create a new expense
-    public Expense createExpense(Expense expense) {
-        return expenseRepository.save(expense);
-    }
-
-    // Update an existing expense
-    public Expense updateExpense(Long id, Expense updatedExpense) {
-        Expense expense = expenseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Expense not found with id: " + id));
-
-//        expense.setDescription(updatedExpense.getDescription());
-//        expense.setAmount(updatedExpense.getAmount());
-//        expense.setDate(updatedExpense.getDate());
-        // Set other fields as needed
-
-        return expenseRepository.save(expense);
-    }
-
-    // Delete an expense by ID
-    public void deleteExpense(Long id) {
-        expenseRepository.deleteById(id);
-    }
-
-    public Map<String, Double> splitExpense(Long expenseId) {
-        Expense expense = expenseRepository.findById(expenseId)
-                .orElseThrow(() -> new RuntimeException("Expense not found"));
-
-        Groups group = groupRepository.findById(expense.getGroup().getId())
+    public Expense createExpense(Long groupId, String description, Double totalAmount, Long paidById, List<ExpenseSplitRequest> splits) {
+        Groups group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
 
-        List<Member> members = group.getMembers();
-        System.out.println("Members count: " + members.size());
+        Member paidBy = memberRepository.findById(paidById)
+                .orElseThrow(() -> new RuntimeException("PaidBy member not found"));
 
-        System.out.println("Paid By: " + (expense.getPaidBy() != null ? expense.getPaidBy().getName() : "null"));
-        System.out.println("Group: " + group.getName());
-        System.out.println("Members count: " + members.size());
+        Expense expense = new Expense();
+        expense.setDescription(description);
+        expense.setTotalAmount(totalAmount);
+        expense.setGroup(group);
+        expense.setPaidBy(paidBy);
+        expense.setDate(LocalDate.now());
 
-        double amount = expense.getAmount();
-        double splitAmount = amount / members.size();
+        List<ExpenseShare> shares = new ArrayList<>();
+        for (ExpenseSplitRequest split : splits) {
+            Member member = memberRepository.findById(split.getMemberId())
+                    .orElseThrow(() -> new RuntimeException("Member not found: " + split.getMemberId()));
 
-        Map<String, Double> debts = new HashMap<>();
+            ExpenseShare share = new ExpenseShare();
+            share.setExpense(expense);
+            share.setMember(member);
+            share.setAmountOwed(split.getAmountOwed());
 
-        for (Member user : members) {
-            System.out.println("Checking user: " + user.getName());
-
-            if (expense.getPaidBy() == null || user.getId().equals(expense.getPaidBy().getId())) {
-                continue;
-            }
-
-            String key = user.getName() + " owes " + expense.getPaidBy().getName();
-            debts.put(key, splitAmount);
+            shares.add(share);
         }
 
-        System.out.println("Final Debts: " + debts);
-
-        return debts;
+        expense.setShares(shares);
+        return expenseRepository.save(expense); // Cascade saves shares too
     }
 
-
-    public Map<String, Double> splitExpenseAndSave(Long expenseId) {
-        Expense expense = expenseRepository.findById(expenseId)
-                .orElseThrow(() -> new RuntimeException("Expense not found"));
-
-        Groups group = expense.getGroup();
-        List<Member> members = group.getMembers();
-
-        double amount = expense.getAmount();
-        double splitAmount = amount / members.size();
-
-        Map<String, Double> debts = new HashMap<>();
-
-        for (Member user : members) {
-            if (!user.getId().equals(expense.getPaidBy().getId())) {
-                // Save transaction
-                Transaction transaction = new Transaction();
-                transaction.setFromUser(user);
-                transaction.setToUser(expense.getPaidBy());
-                transaction.setAmount(splitAmount);
-                transaction.setGroup(group);
-                transactionRepository.save(transaction);
-
-                // Add to response
-                String key = user.getName() + " owes " + expense.getPaidBy().getName();
-                debts.put(key, splitAmount);
-            }
-        }
-
-        return debts;
+    public List<Expense> getAllExpensesByGroup(Long groupId) {
+        return expenseRepository.findAll().stream()
+                .filter(e -> e.getGroup().getId().equals(groupId))
+                .collect(Collectors.toList());
     }
 
 }

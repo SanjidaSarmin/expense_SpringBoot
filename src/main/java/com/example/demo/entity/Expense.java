@@ -1,9 +1,12 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 public class Expense {
@@ -12,18 +15,19 @@ public class Expense {
     private Long id;
 
     private String description;
-    private Double amount;
+    private Double totalAmount;
+
+    @ManyToOne
+    private Groups group;
 
     @ManyToOne
     private Member paidBy;
 
-    @ManyToOne
-    @JoinColumn(name = "group_id", referencedColumnName = "id")
-    private Groups group;
+    private LocalDate date;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<ExpenseShare> shares;
 
     public Long getId() {
         return id;
@@ -41,20 +45,12 @@ public class Expense {
         this.description = description;
     }
 
-    public Double getAmount() {
-        return amount;
+    public Double getTotalAmount() {
+        return totalAmount;
     }
 
-    public void setAmount(Double amount) {
-        this.amount = amount;
-    }
-
-    public Member getPaidBy() {
-        return paidBy;
-    }
-
-    public void setPaidBy(Member paidBy) {
-        this.paidBy = paidBy;
+    public void setTotalAmount(Double totalAmount) {
+        this.totalAmount = totalAmount;
     }
 
     public Groups getGroup() {
@@ -65,11 +61,27 @@ public class Expense {
         this.group = group;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public Member getPaidBy() {
+        return paidBy;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setPaidBy(Member paidBy) {
+        this.paidBy = paidBy;
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
+    }
+
+    public List<ExpenseShare> getShares() {
+        return shares;
+    }
+
+    public void setShares(List<ExpenseShare> shares) {
+        this.shares = shares;
     }
 }
